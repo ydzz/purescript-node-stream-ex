@@ -17,9 +17,10 @@ module Node.StreamEx.Writable (
 ) where
 
 import Data.Maybe (Maybe, maybe)
+import Data.Newtype (unwrap)
 import Effect (Effect)
 import Foreign (Foreign)
-import Node.StreamEx.Types (class IsWritable, toWritable, unwrap,Readable)
+import Node.StreamEx.Types (class IsWritable, toWritable, Readable)
 import Prelude (Unit, identity, pure, unit, ($))
 
 foreign import jsCork ::Foreign -> Effect Unit

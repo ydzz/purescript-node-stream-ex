@@ -17,7 +17,7 @@ main = do
 
 testWritable::Effect Unit
 testWritable = do
- w <- createWriteStream "fucker.txt"
+ w <- createWriteStream "test.txt"
  _ <- SW.onFinish w (do
                        log "onFinish"
                     )
