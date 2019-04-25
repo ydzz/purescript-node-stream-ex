@@ -20,7 +20,7 @@ import Data.Maybe (Maybe, maybe)
 import Data.Newtype (unwrap)
 import Effect (Effect)
 import Foreign (Foreign)
-import Node.StreamEx.Types (class IsWritable, toWritable, Readable)
+import Node.StreamEx.Types (class IsWritable, Readable, toWritable)
 import Prelude (Unit, identity, pure, unit, ($))
 
 foreign import jsCork ::Foreign -> Effect Unit
@@ -94,3 +94,4 @@ onPipe w callback = jsOnPipe (unwrap $ toWritable w) callback
 foreign import jsOnUnpipe::Foreign -> (Readable -> Effect Unit) -> Effect Unit
 onUnpipe::forall w. IsWritable w => w -> (Readable -> Effect Unit) -> Effect Unit
 onUnpipe w callback = jsOnUnpipe (unwrap $ toWritable w) callback
+

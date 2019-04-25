@@ -1,6 +1,7 @@
 module Node.StreamEx.Types (
    Writable(..),
    Readable(..),
+   Duplex(..),
    class IsWritable,
    toWritable,
    class IsReadable,

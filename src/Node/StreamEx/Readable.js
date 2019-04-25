@@ -27,3 +27,103 @@ exports.jsPipe = function (obj) {
     }
   }
 }
+
+exports.jsRead = function (obj) {
+  return function(number) {
+    return function() {
+      return obj.read(number);
+    }
+  }
+}
+
+exports.jsReadable = function (obj) {
+  return function() {
+    return obj.readable;
+  }
+}
+
+exports.jsReadableHighWaterMark = function (obj) {
+  return function() {
+    return obj.readableHighWaterMark;
+  }
+}
+
+exports.jsReadableLength = function (obj) {
+  return function() {
+    return obj.readableLength;
+  }
+}
+
+exports.jsResume = function (obj) {
+  return function() {
+    return obj.resume();
+  }
+}
+
+exports.jsSetEncoding = function (obj) {
+  return function(encoding) {
+    return function() {
+      return obj.setEncoding(encoding);
+    }
+  }
+}
+
+exports.jsUnpipe = function (obj) {
+  return function(dest) {
+    return function() {
+      return obj.unpipe(dest)
+    }
+  }
+}
+
+exports.jsUnshift = function (obj) {
+  return function (chunk) {
+    return function() {
+      return obj.unshift(chunk)
+    }
+  }
+}
+
+exports.jsOnClose = function (obj) {
+  return function(callback) {
+    return function () {
+      return obj.on("close",callback);
+    }
+  }
+}
+
+exports.jsOnData = function (obj) {
+  return function (callback) {
+    return function(){
+      return obj.on("data",function(data) {
+        return callback(data)()
+      });
+    }
+  }
+}
+
+exports.jsOnEnd = function (obj) {
+  return function(callback) {
+    return function () {
+      obj.on("end",callback);
+    }
+  }
+}
+
+exports.jsOnError = function (obj) {
+  return function(callback) {
+    return function(){
+      obj.on("error",function(e){
+        callback(e.toString())()
+      });
+    }
+  }
+}
+
+exports.jsOnReadable = function (obj) {
+  return function(callback) {
+    return function () {
+      obj.on("readable",callback);
+    }
+  }
+}
