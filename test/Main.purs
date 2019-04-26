@@ -11,8 +11,10 @@ import Node.Buffer (Buffer, toString)
 import Node.Buffer as Buf
 import Node.Encoding (Encoding(..))
 import Node.SteamEx.Readable as SR
-import Node.StreamEx.Stream as S
-import Node.StreamEx.Types (Duplex, defNewWritableOptions, defNewReadableOptions, Readable, Writable, toWritable)
+import Node.StreamEx.Duplex as SD
+import Node.StreamEx.PassThrough as S
+import Node.StreamEx.Transform as ST
+import Node.StreamEx.Types (Duplex, Readable, Writable, defNewDuplexOptions, defNewReadableOptions, defNewTransformOptions, defNewWritableOptions, toReadable, toWritable)
 import Node.StreamEx.Writable as SW
 
 
@@ -26,12 +28,54 @@ foreign import jslog ::forall a. a -> Effect Unit
 
 main :: Effect Unit
 main = do
-  testNewReadable
+  testNewTransform
 
+testNewTransform::Effect Unit
+testNewTransform = do
+ (fw::Writable String) <- createWriteStream "test.txt"
+ newTrans <- ST.mkTransform defNewTransformOptions {_transform = _trans,_flush = notNull _flush}
+ _ <- SR.pipe (toReadable newTrans::Readable String) fw Nothing
+ _ <- SW.write (toWritable newTrans) "123" Nothing Nothing
+ _ <- SW.end  (toWritable newTrans) "end" Nothing Nothing
+ ST.onFinish newTrans (log "onFinish")
+ ST.onEnd newTrans (log "onEnd")
+ log "testNewTransform Func End"
+ where
+  _trans::String -> String -> (Nullable String -> Effect Unit) -> (Nullable String -> Effect Unit) -> Effect Unit
+  _trans d enc pushFunc callback = do
+   log  $ "-------enter---_trans-----" <> d
+   pushFunc $ notNull (d <> "\r\n")
+   callback null
+  _flush::(Nullable String -> Effect Unit) -> (Nullable String -> Effect Unit) -> Effect Unit
+  _flush pushFunc callback = do
+   log "run _flush"
+   pushFunc (notNull "************************")
+   callback null
+    
+testNewDuplex::Effect Unit
+testNewDuplex = do
+  pDuplex::Duplex String <-  S.mkPassThrough
+  newDuplex::Duplex String <- SD.mkDuplex  defNewDuplexOptions {_write = _write,_read = _read}
+  _ <- SR.pipe (toReadable newDuplex::Readable String) (toWritable pDuplex) Nothing
+  _ <- SW.write (toWritable newDuplex) "123" Nothing Nothing
+  SR.setEncoding (toReadable newDuplex::Readable String) "utf8"
+  SR.onData (toReadable newDuplex::Readable String) (\str -> log str)
+  log "testNewDuplex Func End"
+ where
+  _write::String -> String -> (Nullable String -> Effect Unit) -> Effect Unit
+  _write d enc callback = do
+    log  $ "------Duplex write " <> d <> "--------"
+    callback null
+  _read::Int -> (Nullable String -> Effect Unit) -> Effect Unit
+  _read n pushFunc = do
+    num <- randomInt
+    log $ "----------Duplex read "<> show num <> "---------"
+    if (num > 90) then pushFunc null 
+                  else pushFunc (notNull $ show num)
 
 testNewReadable::Effect Unit
 testNewReadable = do
- w::Duplex String <- S.newPassThrough
+ w::Duplex String <- S.mkPassThrough
  let (pw::Writable String) = toWritable w
  newR::Readable String <- SR.mkReadable defNewReadableOptions {_read = _read}
  SR.onData newR (\r -> log $ r <> " SR OnData")
@@ -77,7 +121,7 @@ testReadable::Effect Unit
 testReadable = do
   r <- createReadStream "test.txt"
   SR.onData r (\a ->  log a)
-  newThrough::Duplex String <- S.newPassThrough
+  newThrough::Duplex String <- S.mkPassThrough
   SR.pipe r (toWritable newThrough) Nothing
   SW.onFinish (toWritable newThrough::Writable String) (log "newThrough onFinish")
   log "testReadable end"

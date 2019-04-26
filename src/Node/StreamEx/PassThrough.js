@@ -1,5 +1,5 @@
 var stream = require('stream')
 
-exports.newPassThrough = function () {
+exports.mkPassThrough = function () {
     return new stream.PassThrough();
 }

@@ -8,8 +8,13 @@ module Node.StreamEx.Types (
    toReadable,
    NewWritableOptions(..),
    NewReadableOptions(..),
+   NewDuplexOptions(..),
+   NewTransformOptions(..),
    defNewWritableOptions,
-   defNewReadableOptions
+   defNewReadableOptions,
+   defNewDuplexOptions,
+   defNewTransformOptions,
+   Transform(..)
 ) where
 import Data.Nullable
 import Data.Newtype (class Newtype)
@@ -74,7 +79,7 @@ type NewReadableOptions a = {
    encoding     ::Nullable String,
    objectMode   ::Nullable Boolean,
    _read        ::Int -> (Nullable String -> Effect Unit) -> Effect Unit,
-   _destory     ::Nullable (String -> Effect Unit -> Effect Unit)
+   _destory     ::Nullable (a -> Effect Unit -> Effect Unit)
 }
 
 defNewReadableOptions::forall a. NewReadableOptions a
@@ -82,7 +87,7 @@ defNewReadableOptions = {
    highWaterMark : null,
    encoding      : null,
    objectMode    : null,
-   _read         : (\n -> pure $ unsafeCoerce ""),
+   _read         : (\n ns -> pure $ unsafeCoerce ""),
    _destory      :null
 }
 -------------------Duplex-------------------------
@@ -95,3 +100,47 @@ instance duplexIsWritable :: IsWritable (Duplex a) a where
 instance duplexIsReadable :: IsReadable (Duplex a) a where
    toReadable (Duplex d) = Readable d
 
+type NewDuplexOptions a = {
+  allowHalfOpen::Nullable Boolean,
+  objectMode::Nullable Boolean,
+  readableObjectMode::Nullable Boolean,
+  writableObjectMode::Nullable Boolean,
+  readableHighWaterMark::Nullable Int,
+  writableHighWaterMark::Nullable Int,
+  highWaterMark::Nullable Int,
+  _read::Int -> (Nullable a -> Effect Unit) -> Effect Unit,
+  _write::(a -> String -> (Nullable String -> Effect Unit) -> Effect Unit)
+}
+
+defNewDuplexOptions::forall a. NewDuplexOptions a
+defNewDuplexOptions = {
+  allowHalfOpen:null,
+  readableObjectMode:null,
+  writableObjectMode:null,
+  objectMode:null,
+  readableHighWaterMark:null,
+  writableHighWaterMark:null,
+  highWaterMark:null,
+  _read: (\n ns -> pure $ unsafeCoerce ""),
+  _write:(\_ _ cb -> cb null)
+}
+
+-------------------Transform-------------------------
+newtype Transform a = Transform Foreign
+
+instance transformIsWritable :: IsWritable (Transform a) a where
+   toWritable::Transform a -> Writable a
+   toWritable (Transform d) = Writable d
+
+instance transformIsReadable :: IsReadable (Transform a) a where
+   toReadable (Transform d) = Readable d
+
+type NewTransformOptions a =  { 
+   _transform:: a -> String -> (Nullable a -> Effect Unit) -> (Nullable String -> Effect Unit) -> Effect Unit,
+   _flush    ::Nullable ((Nullable a -> Effect Unit) -> (Nullable String -> Effect Unit) -> Effect Unit)
+}
+defNewTransformOptions::forall a. NewTransformOptions a
+defNewTransformOptions = {
+   _transform:(\a enc pushFunc callback -> callback null),
+   _flush:null
+}
