@@ -19,17 +19,18 @@ module Node.StreamEx.Writable (
 
 import Data.Maybe (Maybe, maybe)
 import Data.Newtype (unwrap)
+import Data.Nullable (Nullable)
 import Effect (Effect)
 import Foreign (Foreign)
-import Node.StreamEx.Types (Readable, Writable)
+import Node.StreamEx.Types (Readable, Writable, NewWritableOptions)
 import Prelude (Unit, identity, pure, unit)
 
 foreign import jsCork ::Foreign -> Effect Unit
 cork::forall a. Writable a -> Effect Unit
 cork w = jsCork (unwrap w)
 
-foreign import jsDestroy ::Foreign -> String -> Effect Unit
-destroy:: forall a. Writable a   -> String -> Effect Unit
+foreign import jsDestroy ::Foreign -> Nullable String -> Effect Unit
+destroy:: forall a. Writable a   -> Nullable String -> Effect Unit
 destroy w errString = jsDestroy (unwrap w)  errString
 
 foreign import jsEnd ::forall a. Foreign -> a -> String -> (Unit -> Effect Unit) -> Effect Unit
@@ -97,4 +98,4 @@ foreign import jsOnUnpipe::forall a. Foreign -> (Readable a -> Effect Unit) -> E
 onUnpipe::forall a. Writable a -> (Readable a -> Effect Unit) -> Effect Unit
 onUnpipe w callback = jsOnUnpipe (unwrap w) callback
 
-foreign import mkWritable::forall a.(a -> String -> Effect Unit -> Effect Unit) -> Effect (Writable a)
+foreign import mkWritable::forall a. NewWritableOptions a -> Effect (Writable a)

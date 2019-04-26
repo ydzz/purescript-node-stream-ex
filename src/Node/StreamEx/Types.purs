@@ -5,12 +5,16 @@ module Node.StreamEx.Types (
    class IsWritable,
    toWritable,
    class IsReadable,
-   toReadable
+   toReadable,
+   NewWritableOptions(..),
+   defNewWritableOptions
 ) where
-import Prelude
-
+import Data.Nullable
 import Data.Newtype (class Newtype)
+import Effect (Effect)
 import Foreign (Foreign)
+import Prelude (Unit, identity, pure,($))
+import Unsafe.Coerce (unsafeCoerce)
 
 -------------------Writable-----------------------
 newtype Writable a = Writable Foreign
@@ -26,6 +30,28 @@ instance writableNewtype :: Newtype (Writable a) Foreign where
    wrap   = Writable
    unwrap (Writable w) = w
 
+type NewWritableOptions a =  {
+   highWaterMark   ::Nullable Int,
+   decodeStrings   ::Nullable Boolean,
+   defaultEncoding ::Nullable String,
+   objectMode      ::Nullable Boolean,
+   emitClose       ::Nullable Boolean,
+   _write          ::(a -> String -> (Nullable String -> Effect Unit) -> Effect Unit),
+   _destory        ::Nullable (String -> Effect Unit -> Effect Unit),
+   _final          ::Nullable ((Nullable String -> Effect Unit) -> Effect Unit)
+}
+
+defNewWritableOptions ::forall a. NewWritableOptions a
+defNewWritableOptions =  {
+     highWaterMark:null,
+     decodeStrings:null,
+     defaultEncoding:null,
+     objectMode:null,
+     emitClose:null,
+     _write:(\_ _ cb -> cb null),
+     _destory:null,
+     _final:null
+}
 -------------------Readable-----------------------
 newtype Readable a = Readable Foreign
 
@@ -41,6 +67,22 @@ instance readableNewtype :: Newtype (Readable a) Foreign where
    unwrap::Readable a -> Foreign
    unwrap (Readable w) = w
 
+type NewReadableOptions a = {
+   highWaterMark::Nullable Int,
+   encoding     ::Nullable String,
+   objectMode   ::Nullable Boolean,
+   _read        ::Int -> Effect a,
+   _destory     ::Nullable (String -> Effect Unit -> Effect Unit)
+}
+
+defNewReadableOptions::forall a. NewReadableOptions a
+defNewReadableOptions = {
+   highWaterMark : null,
+   encoding      : null,
+   objectMode    : null,
+   _read         : (\n -> pure $ unsafeCoerce ""),
+   _destory      :null
+}
 -------------------Duplex-------------------------
 newtype Duplex a = Duplex Foreign
 

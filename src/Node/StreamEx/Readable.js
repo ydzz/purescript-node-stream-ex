@@ -127,3 +127,7 @@ exports.jsOnReadable = function (obj) {
     }
   }
 }
+
+exports.mkReadable = function (opts) {
+
+}

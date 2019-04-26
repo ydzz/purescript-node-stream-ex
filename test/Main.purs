@@ -3,6 +3,7 @@ module Test.Main where
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Data.Nullable (Nullable, notNull, null)
 import Effect (Effect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
@@ -11,7 +12,7 @@ import Node.Buffer as Buf
 import Node.Encoding (Encoding(..))
 import Node.SteamEx.Readable as SR
 import Node.StreamEx.Stream as S
-import Node.StreamEx.Types (Duplex, Readable, Writable, toWritable)
+import Node.StreamEx.Types (Duplex, defNewWritableOptions, Readable, Writable, toWritable)
 import Node.StreamEx.Writable as SW
 
 
@@ -28,18 +29,28 @@ main = do
 
 testNewWritable::Effect Unit
 testNewWritable  = do
- newW::Writable Buffer <- SW.mkWritable _write
- SW.onFinish newW (log "onFinish")
+ newW::Writable Buffer <- SW.mkWritable (defNewWritableOptions {_write = _write,_destory= notNull _destory,_final = notNull _final})
+ SW.onClose newW (log "onClose")
+ SW.onError newW (log)
  _ <- SW.write newW  (unsafePerformEffect $ Buf.fromString "abc\r\n" UTF8) Nothing Nothing
  SW.end newW (unsafePerformEffect $ Buf.fromString "end" UTF8) Nothing Nothing
+ SW.destroy newW (notNull "123")
+
  log "testNewWritable Func End"
  where
-  _write::Buffer -> String -> Effect Unit -> Effect Unit
+  _write::Buffer -> String -> (Nullable String -> Effect Unit) -> Effect Unit
   _write d enc callback = do
     str <- (toString UTF8 d)
-    log str
+    --log str
+    callback null
+  _destory:: String -> Effect Unit -> Effect Unit
+  _destory errStr callback = do
+    log "_destory"
     callback
-    pure unit
+  _final::(Nullable String -> Effect Unit) -> Effect Unit
+  _final callback = do
+   log "_final" 
+   callback (notNull "_final error") 
 
 testReadable::Effect Unit
 testReadable = do

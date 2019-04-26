@@ -9,7 +9,7 @@ exports.jsCork = function (obj) {
 exports.jsDestroy = function (obj) {
     return function(errString) {
       return function() {
-         obj.destroy(new Error(errString));
+         obj.destroy(errString == null ? null : new Error(errString));
       }
     }
 }
@@ -124,12 +124,32 @@ exports.jsOnUnpipe = function (obj) {
   }
 }
 
-exports.mkWritable = function (writeFunc) {
+exports.mkWritable = function (opts) {
    return function () {
-     var newStream = new stream.Writable();
-     newStream._write = function (data,enc,callback) {
-      writeFunc(data)(enc)(callback)();
+     if(opts._destory != null) {
+       opts.destroy = function (err,callback) {
+         opts._destory(err)(callback)()
+       }
      }
+     if(opts._final != null) {
+       opts.final = function (callback) {
+        opts._final(function(e){
+          return function(){
+            callback(e == null ? null : new Error(e))
+          }
+        })()
+       }
+     }
+
+     var newStream = new stream.Writable(opts);
+     newStream._write = function (data,enc,callback) {
+      opts._write(data)(enc)(function(e){
+        return function() {
+          callback(e == null ? null : new Error(e))
+        }
+      })();
+     }
+     
      return newStream;
    }
 }
