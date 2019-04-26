@@ -6,4 +6,4 @@ import Effect (Effect)
 import Node.StreamEx.Types (Duplex)
 
 
-foreign import newPassThrough::Effect Duplex
+foreign import newPassThrough::forall a.Effect (Duplex a)

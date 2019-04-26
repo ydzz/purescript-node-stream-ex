@@ -1,3 +1,5 @@
+var stream = require('stream')
+
 exports.jsCork = function (obj) {
     return function () {
       obj.cork();
@@ -122,3 +124,12 @@ exports.jsOnUnpipe = function (obj) {
   }
 }
 
+exports.mkWritable = function (writeFunc) {
+   return function () {
+     var newStream = new stream.Writable();
+     newStream._write = function (data,enc,callback) {
+      writeFunc(data)(enc)(callback)();
+     }
+     return newStream;
+   }
+}
