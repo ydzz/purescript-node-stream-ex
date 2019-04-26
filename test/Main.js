@@ -17,3 +17,7 @@ exports.jslog = function(a) {
     console.log(a);
   }
 }
+
+exports.randomInt = function () {
+  return Math.floor((Math.random()*100)+1);
+}

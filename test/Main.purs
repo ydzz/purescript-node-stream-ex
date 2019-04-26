@@ -12,7 +12,7 @@ import Node.Buffer as Buf
 import Node.Encoding (Encoding(..))
 import Node.SteamEx.Readable as SR
 import Node.StreamEx.Stream as S
-import Node.StreamEx.Types (Duplex, defNewWritableOptions, Readable, Writable, toWritable)
+import Node.StreamEx.Types (Duplex, defNewWritableOptions, defNewReadableOptions, Readable, Writable, toWritable)
 import Node.StreamEx.Writable as SW
 
 
@@ -20,12 +20,33 @@ foreign import createWriteStream ::forall a. String -> Effect (Writable a)
 
 foreign import createReadStream ::forall a. String -> Effect  (Readable a)
 
+foreign import randomInt ::Effect Int
+
 foreign import jslog ::forall a. a -> Effect Unit
 
 main :: Effect Unit
 main = do
-  testNewWritable
+  testNewReadable
 
+
+testNewReadable::Effect Unit
+testNewReadable = do
+ w::Duplex String <- S.newPassThrough
+ let (pw::Writable String) = toWritable w
+ newR::Readable String <- SR.mkReadable defNewReadableOptions {_read = _read}
+ SR.onData newR (\r -> log $ r <> " SR OnData")
+ SW.onPipe pw (\r -> log "pipe")
+ _ <- SR.pipe  newR pw Nothing
+ _ <- SW.write pw "==============================" Nothing Nothing
+ log "testNewReadable Func End"
+ where
+  _read::Int -> (Nullable String -> Effect Unit) -> Effect Unit
+  _read n pushFunc = do
+    num <- randomInt
+    log $ "read---" <> show num
+    if (num > 90) then pushFunc null 
+                  else pushFunc (notNull $ show num)
+    pure unit
 
 testNewWritable::Effect Unit
 testNewWritable  = do

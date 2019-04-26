@@ -7,7 +7,9 @@ module Node.StreamEx.Types (
    class IsReadable,
    toReadable,
    NewWritableOptions(..),
-   defNewWritableOptions
+   NewReadableOptions(..),
+   defNewWritableOptions,
+   defNewReadableOptions
 ) where
 import Data.Nullable
 import Data.Newtype (class Newtype)
@@ -71,7 +73,7 @@ type NewReadableOptions a = {
    highWaterMark::Nullable Int,
    encoding     ::Nullable String,
    objectMode   ::Nullable Boolean,
-   _read        ::Int -> Effect a,
+   _read        ::Int -> (Nullable String -> Effect Unit) -> Effect Unit,
    _destory     ::Nullable (String -> Effect Unit -> Effect Unit)
 }
 

@@ -1,3 +1,5 @@
+var stream = require('stream')
+
 exports.jsDestroy = function (obj) {
     return function(errString) {
       return function() {
@@ -129,5 +131,19 @@ exports.jsOnReadable = function (obj) {
 }
 
 exports.mkReadable = function (opts) {
-
+　return function () {
+    opts.read = function (n) {
+      var self = this;
+      opts._read(n)(function(data) {
+        return function () { self.push(data);}
+      })()
+    }
+    if(opts._destroy != null) {
+      opts.destroy = function(err,callback) {
+        opts._destroy(err)(callback)()
+      }
+    }
+    var newReadable = new stream.Readable(opts);
+    return newReadable;
+  }
 }

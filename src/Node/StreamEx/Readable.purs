@@ -15,7 +15,8 @@ module Node.SteamEx.Readable (
     onEnd,
     onData,
     onReadable,
-    onError
+    onError,
+    mkReadable
 ) where
 import Node.StreamEx.Types
 
@@ -96,3 +97,5 @@ onError r callback = jsOnError (unwrap r) callback
 foreign import jsOnReadable::Foreign -> Effect Unit -> Effect Unit
 onReadable::forall a.Readable a -> Effect Unit -> Effect Unit
 onReadable r callback = jsOnReadable (unwrap r) callback
+
+foreign import mkReadable::forall a. NewReadableOptions a ->　Effect (Readable a)
