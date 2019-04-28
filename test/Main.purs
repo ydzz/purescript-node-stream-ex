@@ -35,7 +35,7 @@ main = do
 testPullStream::Effect Unit
 testPullStream = do
   src <- SC.count 5
-  --src <- SC.count 100000 会栈移除pullStream的实现方式是有些问题的
+  --src <- SC.count 100000 会栈溢出pullStream的实现方式是有些问题的
   Sink.sinkLog src
   pure unit
 
