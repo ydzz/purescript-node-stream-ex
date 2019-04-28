@@ -10,6 +10,8 @@ import Effect.Unsafe (unsafePerformEffect)
 import Node.Buffer (Buffer, toString)
 import Node.Buffer as Buf
 import Node.Encoding (Encoding(..))
+import Node.PullStream.Sink.Log as Sink
+import Node.PullStream.Source.Count as SC
 import Node.SteamEx.Readable as SR
 import Node.StreamEx.Duplex as SD
 import Node.StreamEx.PassThrough as S
@@ -28,7 +30,14 @@ foreign import jslog ::forall a. a -> Effect Unit
 
 main :: Effect Unit
 main = do
-  testNewTransform
+  testPullStream
+
+testPullStream::Effect Unit
+testPullStream = do
+  src <- SC.count 5
+  --src <- SC.count 100000 会栈移除pullStream的实现方式是有些问题的
+  Sink.sinkLog src
+  pure unit
 
 testNewTransform::Effect Unit
 testNewTransform = do
