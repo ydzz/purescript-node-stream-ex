@@ -65,12 +65,12 @@ writableLength::forall a. Writable a -> Effect Number
 writableLength w = jsWritableLength (unwrap w)
 
 
-foreign import jsWrite ::forall a. Foreign -> a -> String -> (Unit -> Effect Unit) -> Effect Boolean
-_write::forall a.  Writable a -> a -> String -> (Unit -> Effect Unit) -> Effect Boolean
+foreign import jsWrite ::forall a. Foreign -> a -> String -> Effect Unit -> Effect Boolean
+_write::forall a.  Writable a -> a -> String -> (Effect Unit) -> Effect Boolean
 _write w chunk encoding callback = jsWrite (unwrap w) chunk encoding callback
 
-write::forall a. Writable a -> a -> Maybe String -> Maybe (Unit -> Effect Unit) -> Effect Boolean
-write w chunk mayEncoding mayCallback  = _write w chunk (maybe "" identity mayEncoding) (maybe (\_ -> pure unit) identity mayCallback)
+write::forall a. Writable a -> a -> Maybe String -> Maybe (Effect Unit) -> Effect Boolean
+write w chunk mayEncoding mayCallback  = _write w chunk (maybe "" identity mayEncoding) (maybe (pure unit) identity mayCallback)
 
 
 foreign import jsOnClose::Foreign ->  Effect Unit -> Effect Unit

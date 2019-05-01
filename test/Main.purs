@@ -30,7 +30,7 @@ foreign import jslog ::forall a. a -> Effect Unit
 
 main :: Effect Unit
 main = do
-  testPullStream
+  testWritable
 
 testPullStream::Effect Unit
 testPullStream = do
@@ -140,9 +140,8 @@ testWritable = do
  (w::Writable String) <- createWriteStream "test.txt"
  _ <- SW.onFinish w (log "onFinish")
  _ <- SW.onError w (\str -> log str)
- _ <- SW.write w "one\r\n" Nothing Nothing
+ _ <- SW.write w "one\r\n" Nothing (Just (log "???????????????"))
  _ <- SW.write w "two\r\n" Nothing Nothing
  _ <- SW.write w "three\r\n" Nothing Nothing
  _ <- SW.end w "write end" Nothing Nothing
- _ <- SW.write w "three\r\n" Nothing Nothing
  log "testWritable end"
