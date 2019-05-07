@@ -33,11 +33,11 @@ foreign import jsDestroy ::Foreign -> Nullable String -> Effect Unit
 destroy:: forall a. Writable a   -> Nullable String -> Effect Unit
 destroy w errString = jsDestroy (unwrap w)  errString
 
-foreign import jsEnd ::forall a. Foreign -> a -> String -> (Unit -> Effect Unit) -> Effect Unit
-_end::forall a. Writable a -> a -> String -> (Unit -> Effect Unit) -> Effect Unit
+foreign import jsEnd ::forall a. Foreign -> Nullable a -> String -> (Unit -> Effect Unit) -> Effect Unit
+_end::forall a. Writable a -> Nullable a -> String -> (Unit -> Effect Unit) -> Effect Unit
 _end  w chunk encoding callback = jsEnd (unwrap  w) chunk encoding callback
 
-end::forall a.Writable a -> a -> Maybe String -> Maybe (Unit -> Effect Unit) -> Effect Unit
+end::forall a.Writable a -> Nullable a -> Maybe String -> Maybe (Unit -> Effect Unit) -> Effect Unit
 end w chunk mayEncoding mayCallback  = _end w chunk (maybe "" identity mayEncoding) (maybe (\_ -> pure unit) identity mayCallback)
 
 foreign import jsSetDefaultEncoding ::Foreign -> String -> Effect Unit

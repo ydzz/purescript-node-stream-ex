@@ -45,7 +45,7 @@ testNewTransform = do
  newTrans <- ST.mkTransform defNewTransformOptions {_transform = _trans,_flush = notNull _flush}
  _ <- SR.pipe (toReadable newTrans::Readable String) fw Nothing
  _ <- SW.write (toWritable newTrans) "123" Nothing Nothing
- _ <- SW.end  (toWritable newTrans) "end" Nothing Nothing
+ _ <- SW.end  (toWritable newTrans) (notNull "end") Nothing Nothing
  ST.onFinish newTrans (log "onFinish")
  ST.onEnd newTrans (log "onEnd")
  log "testNewTransform Func End"
@@ -107,7 +107,7 @@ testNewWritable  = do
  SW.onClose newW (log "onClose")
  SW.onError newW (log)
  _ <- SW.write newW  (unsafePerformEffect $ Buf.fromString "abc\r\n" UTF8) Nothing Nothing
- SW.end newW (unsafePerformEffect $ Buf.fromString "end" UTF8) Nothing Nothing
+ SW.end newW (notNull $ unsafePerformEffect $ Buf.fromString "end" UTF8) Nothing Nothing
  SW.destroy newW (notNull "123")
 
  log "testNewWritable Func End"
@@ -143,5 +143,5 @@ testWritable = do
  _ <- SW.write w "one\r\n" Nothing (Just (log "???????????????"))
  _ <- SW.write w "two\r\n" Nothing Nothing
  _ <- SW.write w "three\r\n" Nothing Nothing
- _ <- SW.end w "write end" Nothing Nothing
+ _ <- SW.end w (notNull "write end") Nothing Nothing
  log "testWritable end"
